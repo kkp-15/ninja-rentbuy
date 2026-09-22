@@ -1,0 +1,122 @@
+/* 借りる？買う？判定 共通スタイル
+   方針: 白地・左揃え・罫線で区切る。フォームはフォームらしく（項目名の列＋選択列の表）、
+   結果は表。色はCTAと選択中だけ。角丸・影・バッジ・帯は使わない。 */
+:root{--ink:#222;--sub:#666;--line:#c8c8c8;--line-l:#e3e3e3;--head:#f4f4f4;--sel:#222;--accent:#d9520b;--accent-d:#b6420a;--link:#0b57a4}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:#fff;color:var(--ink);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic Medium","Meiryo",sans-serif;font-size:16px;line-height:1.75}
+a{color:var(--link)}
+p{margin:0 0 .9rem}
+ul{padding-left:1.4rem}
+li{margin:0 0 .3rem}
+b,strong{font-weight:700}
+
+/* サイト上部 */
+.site{border-bottom:1px solid var(--ink)}
+.site-in{max-width:760px;margin:0 auto;padding:10px 16px;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.site-name{font-weight:700;font-size:15px;color:var(--ink);text-decoration:none;letter-spacing:.02em}
+.site-nav{font-size:13px;color:var(--sub)}
+.site-nav a{color:var(--sub);text-decoration:none;margin-left:14px}
+.site-nav a[aria-current]{color:var(--ink);font-weight:700;border-bottom:2px solid var(--ink)}
+.wrap{max-width:760px;margin:0 auto;padding:18px 16px 56px}
+.crumb{font-size:12px;color:var(--sub);margin:0 0 .6rem}
+.crumb a{color:var(--sub)}
+h1{font-size:22px;font-weight:700;margin:0 0 .3rem;line-height:1.45}
+.lead{font-size:15px;margin:0 0 .6rem}
+.meta{font-size:12px;color:var(--sub);margin:0 0 1rem}
+h2{font-size:19px;font-weight:700;margin:2.4rem 0 .7rem;padding:0 0 .35rem;border-bottom:2px solid var(--ink);line-height:1.4;scroll-margin-top:8px}
+h3{font-size:16.5px;font-weight:700;margin:1.5rem 0 .4rem;padding-left:.55rem;border-left:3px solid var(--ink);line-height:1.4}
+
+/* 表 */
+table{border-collapse:collapse;width:100%;font-size:14.5px;background:#fff}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top;line-height:1.55}
+th{background:var(--head);font-weight:700;white-space:nowrap}
+td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.scroll{overflow-x:auto}
+.note{font-size:12.5px;color:var(--sub)}
+.src{font-size:12.5px;color:var(--sub);margin:.3rem 0 0}
+
+/* 判定フォーム（項目名の列＋選択の列） */
+.tool{width:100%;border-collapse:collapse;margin:.2rem 0 0;font-size:15px}
+.tool th{width:9.5em;background:var(--head);font-weight:700;border:1px solid var(--line);padding:8px 10px;vertical-align:middle;white-space:normal;line-height:1.35}
+.tool th small{display:block;font-weight:400;font-size:11.5px;color:var(--sub)}
+.tool td{border:1px solid var(--line);padding:6px 8px;vertical-align:middle}
+.seg{display:flex;flex-wrap:wrap;gap:0;margin:0}
+.seg button{font:inherit;font-size:14.5px;line-height:1.3;color:var(--ink);background:#fff;border:1px solid var(--line);margin:0 0 -1px -1px;padding:8px 10px;min-height:42px;cursor:pointer;text-align:center;flex:1 1 auto;white-space:nowrap}
+.seg button:first-child{margin-left:0}
+.seg button:hover{background:#f7f7f7}
+.seg button[aria-pressed="true"]{background:var(--sel);color:#fff;border-color:var(--sel);position:relative;z-index:1;font-weight:700}
+.seg button small{display:block;font-size:11px;font-weight:400;line-height:1.25;white-space:normal;color:inherit;opacity:.85}
+.seg.two button{flex-basis:50%;text-align:left}
+.seg.three button{flex:1 1 33.33%;padding-left:2px;padding-right:2px}
+.seg.two button b{display:block;font-size:15px}
+
+/* 結果 */
+.result{margin-top:1rem;border:2px solid var(--ink);padding:10px 12px 12px}
+.result .verdict{font-size:12.5px;color:var(--sub);margin:0}
+.result .big{font-size:21px;font-weight:700;margin:.15rem 0 .2rem;line-height:1.35}
+.result .be{font-size:15px;font-weight:700;margin:0 0 .6rem}
+.rtable{font-size:14px}
+.rtable td.k{width:9.5em}
+.rtable td.f{font-size:12.5px;color:var(--sub)}
+.rtable tr.win td{font-weight:700;background:#f4f4f4}
+.result .why{font-size:14px;margin:.6rem 0 0}
+.cta{display:inline-block;margin:.8rem 0 0;background:var(--accent);color:#fff;font-weight:700;text-decoration:none;padding:.7rem 1.2rem;font-size:15.5px;border:1px solid var(--accent-d)}
+.cta:hover{background:var(--accent-d)}
+.ctanote{font-size:12px;color:var(--sub);margin:.35rem 0 0}
+.cta2{display:inline-block;margin:.45rem 0 0;font-size:14px}
+.cta2[hidden]{display:none}
+
+/* 細かく直す */
+.fine{margin-top:.8rem;border:1px solid var(--line)}
+.fine summary{cursor:pointer;font-weight:700;font-size:14.5px;padding:.55rem .8rem;background:var(--head);list-style:none}
+.fine summary::-webkit-details-marker{display:none}
+.fine summary::before{content:"＋ ";font-weight:400}
+.fine[open] summary::before{content:"－ "}
+.fine .form,.fine .calc{margin:0}
+.fine .note{padding:.5rem .8rem}
+.form{width:100%;border-collapse:collapse;font-size:14.5px}
+.form th{width:52%;font-weight:700;text-align:left;background:var(--head);border:1px solid var(--line);padding:7px 10px;white-space:normal;line-height:1.35}
+.form th small{display:block;font-weight:400;font-size:11.5px;color:var(--sub)}
+.form td{border:1px solid var(--line);padding:5px 10px;white-space:nowrap}
+.form input{width:7.2em;max-width:100%;font:inherit;font-size:16px;text-align:right;padding:.28rem .4rem;border:1px solid var(--line);background:#fff}
+.form input:focus{outline:2px solid var(--accent);outline-offset:0}
+.form .unit{margin-left:.3rem;color:var(--sub);font-size:13px}
+.chipnote{font-size:12.5px;color:var(--sub);margin:.3rem 0 0}
+
+/* 広告 */
+.kkp-ad{text-align:center;margin:1.6rem auto 0;max-width:680px;min-height:288px;padding-top:6px}
+.kkp-ad-label{font-size:11px;color:#999;letter-spacing:.08em;margin:0 0 6px;line-height:1}
+.kkp-ad ins.adsbygoogle{display:block;width:300px;height:250px;margin:0 auto}
+
+/* 読み物 */
+.toc{border:1px solid var(--line);padding:.5rem .9rem;margin:.8rem 0 0;font-size:14px}
+.toc b{display:block;margin-bottom:.1rem}
+.toc ol{margin:.1rem 0 0;padding-left:1.4rem}
+.toc li{margin:0}
+.point{border:1px solid var(--line);border-left:4px solid var(--ink);padding:.5rem .9rem;margin:.8rem 0 0;font-size:15px}
+.point > b:first-child{display:block;margin-bottom:.1rem}
+.point ul{margin:.2rem 0 0}
+.hayami{font-size:13.5px}
+.hayami td.num{font-weight:700;white-space:nowrap}
+.hayami td:first-child{min-width:6.5em}
+.faq details{border-bottom:1px solid var(--line-l);padding:.15rem 0}
+.faq summary{cursor:pointer;font-weight:700;padding:.5rem 0;font-size:14.5px}
+.faq p{margin:0 0 .7rem;font-size:14.5px}
+.author{margin:2.4rem 0 0;padding:.6rem .9rem;border-top:1px solid var(--line);font-size:13.5px;color:var(--sub)}
+.author p{margin:.2rem 0 0}
+footer.site-foot{border-top:1px solid var(--line);margin-top:2rem;padding:1.4rem 16px 2rem;font-size:12.5px;color:var(--sub);text-align:left}
+footer.site-foot .in{max-width:760px;margin:0 auto}
+footer.site-foot a{color:var(--sub);margin-right:14px}
+
+@media(max-width:480px){
+  .tool th{width:6.2em;padding:6px 6px;font-size:13.5px}
+  .tool td{padding:5px 5px}
+  .seg button{font-size:13.5px;padding:7px 4px;min-height:40px}
+  .seg.two button b{font-size:14px}
+  h1{font-size:20px}
+  table{font-size:13.5px}
+  .rtable td.k{width:6.6em;padding-left:6px;padding-right:6px}
+  .rtable td.num{padding-left:6px;padding-right:6px}
+  .rtable td.f{font-size:11.5px;padding-left:6px;padding-right:6px}
+}
