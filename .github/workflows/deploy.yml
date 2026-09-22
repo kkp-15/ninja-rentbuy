@@ -1,0 +1,27 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: 計算の回帰テスト
+        run: node tests/calc.test.mjs
+      - name: 配信前に非公開ファイルを削除
+        # Pages は .assetsignore を読まない。出典メモ・設計案・テスト・作業ルールは配信しない
+        run: rm -rf ./*.md .claude .github .gitignore .assetsignore wrangler.jsonc .wrangler tests
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.85.0"
+          command: pages deploy . --project-name=ninja-rentbuy --branch=main --commit-dirty=true

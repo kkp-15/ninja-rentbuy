@@ -1,0 +1,10 @@
+.git
+.github
+wrangler.jsonc
+.assetsignore
+node_modules
+README.md
+CNAME
+SOURCES.md
+PLAN_stage2.md
+tests
