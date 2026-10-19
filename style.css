@@ -124,3 +124,32 @@ footer.site-foot a{color:var(--sub);margin-right:14px}
   .rtable td.num{padding-left:6px;padding-right:6px}
   .rtable td.f{font-size:11.5px;padding-left:6px;padding-right:6px}
 }
+
+/* ===== 2026-10-19 共通部品 D4（ストリート和忍者）に見た目をそろえる（お金・くらしは控えめに） =====
+   罫線と左揃え・表が主役の作りはそのまま。kit/kit.css の変数を使う。
+   料金・計算・出典・ゲオ（A8）/Amazon の CTA と PR 表記・広告・GA4・JSON-LD・title は変えない。 */
+body.k-page{background:var(--k-surface) url(/kit/img/d4-washi.webp) 0 0/320px auto;color:var(--ink);font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic Medium","Meiryo",sans-serif;line-height:1.75}
+.site{border-bottom:var(--k-bw) solid var(--k-sumi);background-color:var(--k-kinari);background-image:conic-gradient(rgba(31,26,23,.04) 25%,transparent 0 50%,rgba(31,26,23,.04) 0 75%,transparent 0);background-size:16px 16px}
+.site-name{font-family:var(--k-bold);font-weight:400;letter-spacing:.04em;color:var(--k-sumi)}
+.site-nav a[aria-current]{color:var(--k-sumi);border-bottom:3px solid var(--k-orange)}
+h1{font-family:var(--k-brush);font-weight:400;letter-spacing:.08em;line-height:1.4;color:var(--k-sumi);font-feature-settings:"palt" 1}
+h2{font-family:var(--k-brush);font-weight:400;letter-spacing:.1em;color:var(--k-sumi);border-bottom:var(--k-bw) solid var(--k-sumi);font-feature-settings:"palt" 1}
+h3{border-left:4px solid var(--k-orange)}
+table{background:var(--k-surface)}
+th{background:var(--k-kinari)}
+.tool{border:var(--k-bw) solid var(--k-sumi);box-shadow:var(--k-sh-s)}
+.tool th{background:var(--k-kinari);font-family:var(--k-bold);font-weight:400;letter-spacing:.04em}
+.seg button{border-color:rgba(31,26,23,.35);min-height:44px}
+.seg button[aria-pressed="true"]{background:var(--k-shu);border-color:var(--k-sumi);color:#fff}
+.result{border:var(--k-bw) solid var(--k-sumi);box-shadow:var(--k-sh-l);background:var(--k-surface) url(/kit/img/d4-washi.webp) 0 0/320px auto}
+.result .big{font-family:var(--k-bold);font-weight:400;letter-spacing:.04em;color:var(--k-sumi)}
+.result .be{color:var(--k-sumi)}
+td.num,th.num{font-variant-numeric:tabular-nums}
+.rtable td.num{font-family:var(--k-bold);font-weight:400}
+.fine{border:var(--k-bw-s) solid var(--k-sumi);border-radius:var(--k-r)}
+.fine summary{background:var(--k-kinari);font-family:var(--k-bold);font-weight:400;letter-spacing:.04em}
+.form input{border:var(--k-bw-s) solid var(--k-sumi);border-radius:4px;min-height:40px}
+.form input:focus{outline:2px solid var(--k-shu)}
+.toc,.point{border-color:var(--k-sumi);background:var(--k-surface)}
+.point{border-left:6px solid var(--k-orange)}
+.cta2{color:var(--k-sumi);font-weight:700;text-decoration:underline;text-decoration-color:var(--k-orange);text-decoration-thickness:2px;text-underline-offset:4px}
