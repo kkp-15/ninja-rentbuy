@@ -153,3 +153,6 @@ td.num,th.num{font-variant-numeric:tabular-nums}
 .toc,.point{border-color:var(--k-sumi);background:var(--k-surface)}
 .point{border-left:6px solid var(--k-orange)}
 .cta2{color:var(--k-sumi);font-weight:700;text-decoration:underline;text-decoration-color:var(--k-orange);text-decoration-thickness:2px;text-underline-offset:4px}
+
+/* ===== 2026-10-20 清潔感（kkp-kit 17eac63 の方針）: 影は押せるものだけ（入れ物の .tool・.result は影なし）。ほかはそのまま ===== */
+.tool,.result{box-shadow:none}
