@@ -86,7 +86,7 @@ td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-n
 
 /* 広告 */
 .kkp-ad{text-align:center;margin:1.6rem auto 0;max-width:680px;min-height:288px;padding-top:6px}
-.kkp-ad-label{font-size:11px;color:#999;letter-spacing:.08em;margin:0 0 6px;line-height:1}
+.kkp-ad-label{font-size:12px;color:#666;letter-spacing:.08em;margin:0 0 6px;line-height:1}
 .kkp-ad ins.adsbygoogle{display:block;width:300px;height:250px;margin:0 auto}
 
 /* 読み物 */
