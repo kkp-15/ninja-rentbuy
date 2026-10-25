@@ -156,3 +156,8 @@ td.num,th.num{font-variant-numeric:tabular-nums}
 
 /* ===== 2026-10-20 清潔感（kkp-kit 17eac63 の方針）: 影は押せるものだけ（入れ物の .tool・.result は影なし）。ほかはそのまま ===== */
 .tool,.result{box-shadow:none}
+
+/* 2026-10-25 上のタブ（スーツケース・カメラ・ゲオ）は高さ14〜17pxで押しにくかった。見た目は同じまま押せる高さを44pxに */
+.site-nav{display:flex;flex-wrap:wrap;align-items:center}
+.site-nav a{display:inline-flex;align-items:center;min-height:44px}
+.site-nav a[aria-current]{border-bottom:0;box-shadow:inset 0 -3px 0 var(--k-orange)}
