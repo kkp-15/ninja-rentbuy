@@ -3,6 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  受け取れるURL引数（/camera/）。不正な値・範囲外は無視して初期値／前回の値を使う
+    item    = r100 | zv1m2 | oa5p     機種（選ぶと購入価格・レンタル料金がその機種の確認済みの額になる）
+    price   = 0〜99999999             購入価格（円・税込）。item 無しで price か rent があれば「自分で数字を入れる」扱い
+    rent    = 0〜9999999              レンタル1回の料金（円）。旧名 fee も読む
+    n       = 1〜365                  年に使う回数
+    years   = 1〜10                   買ったら何年使うか。旧名 y も読む
+    resale  = 0〜99999999             手放すときの売却額（円）
+  例: /camera/?item=zv1m2&n=3
+  URL引数があればそれを優先（GA4 via=url）。無ければ前回の条件を localStorage「rentbuy_camera」から出す（via=saved）
+-->
 
 <title>初めてのカメラ、いきなり買う？まず借りて試す？年5〜7回が分かれ目｜損益分岐を計算【2026年9月】</title>
 <meta name="description" content="カメラを持っていない人が、いきなり買うか、まず借りて試すか。年に何回使うかで分かれ目が決まる。入門一眼・Vlogカメラ・アクションカメラの早見表と電卓、初めて借りる手順、初心者の疑問への答え（ゲオ公式の記載のみ）。料金と価格は2026年9月18日確認。">
@@ -81,7 +92,7 @@
 <!-- 共通部品 D4（kkp-kit を kit/ にコピーしたもの。中は手で直さず kkp-kit 側で直して sync.sh） -->
 <link rel="stylesheet" href="/kit/kit.css?v=6f47ed7">
 <script src="/kit/kit.js?v=6f47ed7" defer></script>
-<link rel="stylesheet" href="/style.css?v=20261025ux">
+<link rel="stylesheet" href="/style.css?v=20261123">
 <!-- kkp-rel-d4:start -->
 <style id="kkp-rel-d4">
 /* あわせて使えるアプリ（統一仕様の欄）を D4 に: 和紙の面・筆の見出し・墨の字＋オレンジの下線＋道しるべ。入れ物なので影なし（kit: 影は押せるものだけ）。中身とリンクは触らない（インライン style に勝つため !important） */
@@ -120,6 +131,10 @@
   <p class="verdict" id="rItem"></p>
   <p class="big" id="rBig"></p>
   <p class="be" id="rBe"></p>
+  <p class="rfrom" id="rFrom" hidden></p>
+  <a class="cta" id="cta" href="#" target="_blank" rel="sponsored nofollow noopener"></a>
+  <p class="ctanote" id="ctaNote"></p>
+  <span id="a8px"></span>
   <table class="rtable">
     <tr><th>項目</th><th class="num">金額</th><th>式</th></tr>
     <tr id="cRent"><td class="k">借りつづける合計</td><td class="num" id="rRent"></td><td class="f" id="rRentSub"></td></tr>
@@ -127,9 +142,6 @@
     <tr><td class="k">差額</td><td class="num" id="rDiff"></td><td class="f" id="rDiffSub"></td></tr>
   </table>
   <p class="why" id="rWhy"></p>
-  <a class="cta" id="cta" href="#" target="_blank" rel="sponsored nofollow noopener"></a>
-  <p class="ctanote" id="ctaNote"></p>
-  <span id="a8px"></span>
   <a class="cta2" id="killer" href="/geo-arekore/" hidden>申し込み前に知っておくこと（審査・料金・返却・キャンセル）</a>
 </section>
 
@@ -315,6 +327,15 @@ function judge(fee, price, resale, years, n) {
   var LIM = { price: [0, 99999999], fee: [0, 9999999], n: [1, 365], years: [1, 10], resale: [0, 99999999] };
   var st = { item: ITEMS[0], price: ITEMS[0].price, fee: ITEMS[0].fee, n: DEFAULTS.n, years: DEFAULTS.years, resale: DEFAULTS.resale };
   var lastKey = '';
+  var LS_KEY = 'rentbuy_camera';
+  var via = 'default';      // GA4 の via: url（URL引数で来た）／saved（前回の条件）／tap（ボタン）／input（数字を直した）
+  var showUrl = false;      // 何も選んでいない初回はURLを書き換えない
+  var PREVIEW = /[?&](preview|noads)=1/.test(location.search) || /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  function ev(name, params) { if (!PREVIEW && typeof gtag === 'function') gtag('event', name, params); }
+  function touch(how) { via = how; showUrl = true; $('rFrom').hidden = true; }
+  function save() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ item: st.item ? st.item.id : '', price: st.price, rent: st.fee, n: st.n, years: st.years, resale: st.resale })); } catch (e) {}
+  }
 
   function itemById(id) { for (var i = 0; i < ITEMS.length; i++) if (ITEMS[i].id === id) return ITEMS[i]; return null; }
   function num(v, def, lim) { v = parseInt(v, 10); if (isNaN(v)) return def; return Math.min(lim[1], Math.max(lim[0], v)); }
@@ -342,6 +363,7 @@ function judge(fee, price, resale, years, n) {
   }
 
   function writeUrl() {
+    if (!showUrl) return;
     var p = [];
     if (st.item) p.push('item=' + st.item.id);
     p.push('price=' + st.price, 'rent=' + st.fee, 'n=' + st.n, 'years=' + st.years);
@@ -382,13 +404,13 @@ function judge(fee, price, resale, years, n) {
     cta.dataset.choice = r.choice;
     if (r.choice === 'rent') {
       cta.href = A8_HREF;
-      cta.textContent = 'ゲオあれこれレンタルで探す';
+      cta.textContent = '借りるなら：ゲオで' + (it ? it.short + 'など' : '') + 'カメラの一覧を見る';
       $('ctaNote').textContent = 'PR・料金は' + CHECKED + ' 確認。本州・四国・九州は往復送料無料。';
       $('a8px').innerHTML = '<img border="0" width="1" height="1" src="' + A8_IMG + '" alt="">';
       $('killer').hidden = false;
     } else {
       cta.href = 'https://www.amazon.co.jp/s?k=' + encodeURIComponent(it ? it.amazon : 'デジタルカメラ') + '&tag=' + AMAZON_TAG;
-      cta.textContent = 'Amazonでいまの価格を見る';
+      cta.textContent = '買うなら：Amazonで' + (it ? it.short + ' の' : '') + 'いまの値段を見る';
       $('ctaNote').textContent = it
         ? 'PR・' + it.band + '（メーカー直販・' + CHECKED + ' 確認）。価格は変わります。'
         : 'PR・販売店の価格は変わります。買う前に確かめてください。';
@@ -398,8 +420,9 @@ function judge(fee, price, resale, years, n) {
 
     // 同じ条件の連続イベントは送らない
     var key = [it ? it.id : '', st.price, st.fee, st.n, st.years, st.resale].join('|');
-    if (track && key !== lastKey && typeof gtag === 'function') {
-      gtag('event', 'rentbuy_result', { item: it ? it.id : 'custom', n: st.n, years: st.years, choice: r.choice, cat: CAT });
+    if (track && key !== lastKey) {
+      if (via === 'tap' || via === 'input') save();
+      ev('rentbuy_result', { item: it ? it.id : 'custom', n: st.n, years: st.years, choice: r.choice, cat: CAT, via: via });
     }
     lastKey = key;
   }
@@ -409,54 +432,79 @@ function judge(fee, price, resale, years, n) {
     $(k).addEventListener('input', function (e) {
       if (e.target.value === '') return;
       st[k] = num(e.target.value, st[k], LIM[k]);
-      render(false);
+      touch('input'); render(false);
     });
-    $(k).addEventListener('blur', function () { fillInputs(); render(true); });
+    $(k).addEventListener('blur', function () { fillInputs(); if (via === 'input') render(true); });
   });
   $('chips').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     if (b.dataset.id === 'custom') {
       // 自分の数字で。機種の紐づけを外し、入力欄を開いて最初の欄へ
-      st.item = null; render(true);
+      st.item = null; touch('tap'); render(true);
       $('fine').open = true; $('price').focus(); $('price').select();
-      if (typeof gtag === 'function') gtag('event', 'rentbuy_item', { item: 'custom', cat: CAT });
+      ev('rentbuy_item', { item: 'custom', cat: CAT });
       return;
     }
     var it = itemById(b.dataset.id); if (!it) return;
     st.item = it; st.price = it.price; st.fee = it.fee;
-    fillInputs(); render(true);
-    if (typeof gtag === 'function') gtag('event', 'rentbuy_item', { item: it.id, cat: CAT });
+    fillInputs(); touch('tap'); render(true);
+    ev('rentbuy_item', { item: it.id, cat: CAT });
   });
   $('nPick').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     st.n = parseInt(b.dataset.n, 10);
-    fillInputs(); render(true);
+    fillInputs(); touch('tap'); render(true);
     // 結果が画面の下に隠れているときだけ見えるところまで送る
     var r = $('result').getBoundingClientRect();
     if (r.top > window.innerHeight * 0.6) $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
   $('cta').addEventListener('click', function () {
-    if (typeof gtag === 'function') gtag('event', 'rentbuy_cta', { choice: $('cta').dataset.choice, cat: CAT, from: 'tool' });
+    ev('rentbuy_cta', { choice: $('cta').dataset.choice, cat: CAT, from: 'tool', via: via });
   });
   $('cta3').addEventListener('click', function () {
-    if (typeof gtag === 'function') gtag('event', 'rentbuy_cta', { choice: 'rent', cat: CAT, from: 'tool_daisan' });
+    ev('rentbuy_cta', { choice: 'rent', cat: CAT, from: 'tool_daisan', via: via });
   });
   $('killer').addEventListener('click', function () {
-    if (typeof gtag === 'function') gtag('event', 'rentbuy_killer_link', { item: st.item ? st.item.id : 'custom', cat: CAT });
+    ev('rentbuy_killer_link', { item: st.item ? st.item.id : 'custom', cat: CAT, via: via });
   });
 
-  // URLパラメータから復元（旧形式 ?cat=camera&item=r100&n=5 も読む）
+  // URL引数から復元（旧形式 ?cat=camera&item=r100&n=5、fee=・y= も読む）。無ければ前回の条件。数字でない・範囲外は無視
+  function take(get) {
+    var got = false;
+    function pick(keys, field, lim) {
+      for (var i = 0; i < keys.length; i++) {
+        var raw = get(keys[i]); if (raw === null || raw === undefined || raw === '') continue;
+        var v = parseInt(raw, 10); if (isNaN(v) || String(v) !== String(raw).trim() || v < lim[0] || v > lim[1]) continue;
+        st[field] = v; got = true; return;
+      }
+    }
+    var qi = get('item') ? itemById(get('item')) : null;
+    if (qi) { st.item = qi; st.price = qi.price; st.fee = qi.fee; got = true; }
+    var hadNum = got;
+    pick(['price'], 'price', LIM.price);
+    pick(['rent', 'fee'], 'fee', LIM.fee);
+    if (!qi && got !== hadNum) st.item = null;   // 機種なしで金額だけ来たら「自分で数字を入れる」
+    pick(['n'], 'n', LIM.n);
+    pick(['years', 'y'], 'years', LIM.years);
+    pick(['resale'], 'resale', LIM.resale);
+    return got;
+  }
   var q = new URLSearchParams(location.search);
-  var qi = q.get('item') ? itemById(q.get('item')) : null;
-  if (qi) { st.item = qi; st.price = qi.price; st.fee = qi.fee; }
-  else if (q.has('price') || q.has('rent')) { st.item = null; }
-  st.price = num(q.get('price'), st.price, LIM.price);
-  st.fee = num(q.get('rent') !== null ? q.get('rent') : q.get('fee'), st.fee, LIM.fee);
-  st.n = num(q.get('n'), st.n, LIM.n);
-  st.years = num(q.get('years') !== null ? q.get('years') : q.get('y'), st.years, LIM.years);
-  st.resale = num(q.get('resale'), st.resale, LIM.resale);
+  if (take(function (k) { return q.get(k); })) { via = 'url'; showUrl = true; }
+  else {
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
+    if (saved && typeof saved === 'object') {
+      if (saved.item === '') saved.item = null;
+      if (take(function (k) { return saved[k] === undefined || saved[k] === null ? null : String(saved[k]); })) {
+        via = 'saved'; showUrl = true;
+        $('rFrom').textContent = '前回選んだ条件で出しています。変えるときは上のボタンを押してください。';
+        $('rFrom').hidden = false;
+      }
+    }
+  }
   fillInputs();
-  render(false);
+  render(via === 'url' || via === 'saved');
 
   // 広告
   [].forEach.call(document.querySelectorAll('ins.adsbygoogle'), function () {

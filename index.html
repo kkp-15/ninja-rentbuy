@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="msvalidate.01" content="EF6E7C7B123A3218DAE3B152F5B0764D" />
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--
+  受け取れるURL引数（スーツケース・トップ）。不正な値・範囲外は無視して初期値／前回の値を使う
+    size    = s | m | l | ll          サイズ（選ぶと泊数もそのサイズの目安になる）
+    nights  = 1〜30                   1回の旅行の泊数
+    trips   = 1〜100                  年に旅行する回数
+    price   = 0〜9999999              買う場合の値段（円・税込）
+    extra   = 0〜10                   旅行の前後に借りる日数（標準1）
+    years   = 1〜10                   買ったら何年使うか（標準3）
+    resale  = 0〜9999999              手放すときの売却額（円）
+  例: /?size=l&nights=6&trips=2&price=30000
+  URL引数があればそれを優先（GA4 via=url）。無ければ前回の条件を localStorage「rentbuy_suitcase」から出す（via=saved）
+-->
 
 <title>スーツケースはレンタルと買うのどっちが得？泊数と年の回数で判定（ゲオの料金で計算）【2026年9月】</title>
 <meta name="description" content="スーツケースを借りるか買うか迷ったら、泊数と年に何回旅行するかを押すだけ。ゲオあれこれレンタルの実際の料金（Sサイズ2,490円〜・延長1日220円）で、借りつづける合計と買う値段を比べます。何回までなら借りるほうが安いかがすぐ分かります。">
@@ -78,7 +90,7 @@
 <!-- 共通部品 D4（kkp-kit を kit/ にコピーしたもの。中は手で直さず kkp-kit 側で直して sync.sh） -->
 <link rel="stylesheet" href="/kit/kit.css?v=6f47ed7">
 <script src="/kit/kit.js?v=6f47ed7" defer></script>
-<link rel="stylesheet" href="/style.css?v=20261025ux">
+<link rel="stylesheet" href="/style.css?v=20261123">
 <!-- kkp-rel-d4:start -->
 <style id="kkp-rel-d4">
 /* あわせて使えるアプリ（統一仕様の欄）を D4 に: 和紙の面・筆の見出し・墨の字＋オレンジの下線＋道しるべ。入れ物なので影なし（kit: 影は押せるものだけ）。中身とリンクは触らない（インライン style に勝つため !important） */
@@ -119,6 +131,10 @@
   <p class="verdict" id="rItem"></p>
   <p class="big" id="rBig"></p>
   <p class="be" id="rBe"></p>
+  <p class="rfrom" id="rFrom" hidden></p>
+  <a class="cta" id="cta" href="#" target="_blank" rel="sponsored nofollow noopener"></a>
+  <p class="ctanote" id="ctaNote"></p>
+  <span id="a8px"></span>
   <table class="rtable">
     <tr><th>項目</th><th class="num">金額</th><th>式</th></tr>
     <tr><td class="k">1回借りる料金</td><td class="num" id="rOnce"></td><td class="f" id="rOnceSub"></td></tr>
@@ -127,9 +143,6 @@
     <tr><td class="k">差額</td><td class="num" id="rDiff"></td><td class="f" id="rDiffSub"></td></tr>
   </table>
   <p class="why" id="rWhy"></p>
-  <a class="cta" id="cta" href="#" target="_blank" rel="sponsored nofollow noopener"></a>
-  <p class="ctanote" id="ctaNote"></p>
-  <span id="a8px"></span>
   <a class="cta2" id="killer" href="/geo-arekore/" hidden>申し込み前に知っておくこと（審査・料金・返却・キャンセル）</a>
 </section>
 
@@ -318,6 +331,9 @@ function judge(once, price, resale, years, trips) {
   var LIM = { price: [0, 9999999], extraNights: [0, 10], years: [1, 10], resale: [0, 9999999] };
   var st = { size: DEFAULTS.size, nights: DEFAULTS.nights, trips: DEFAULTS.trips, price: DEFAULTS.price, extraNights: DEFAULTS.extraNights, years: DEFAULTS.years, resale: DEFAULTS.resale };
   var lastKey = '';
+  var LS_KEY = 'rentbuy_suitcase';
+  var via = 'default';      // GA4 の via: url（URL引数で来た）／saved（前回の条件）／tap（ボタン）／input（数字を直した）
+  var showUrl = false;      // 何も選んでいない初回はURLを書き換えない
   function sizeById(id) { for (var i = 0; i < SIZES.length; i++) if (SIZES[i].id === id) return SIZES[i]; return SIZES[1]; }
   function num(v, def, lim) { v = parseInt(v, 10); if (isNaN(v)) return def; return Math.min(lim[1], Math.max(lim[0], v)); }
   function a8(url) { return 'https://px.a8.net/svt/ejp?a8mat=' + A8_MAT + '&a8ejpredirect=' + encodeURIComponent(url); }
@@ -345,17 +361,36 @@ function judge(once, price, resale, years, trips) {
   })();
 
   function fillInputs() { ['price', 'extraNights', 'years', 'resale'].forEach(function (k) { $(k).value = st[k]; }); }
+  // 値を受け取る（URL引数・前回の条件で共通）。数字でない・範囲外は無視して今の値のまま。1つでも受け取れたら true
+  function take(get) {
+    var got = false;
+    function pick(key, field, lim) {
+      var raw = get(key); if (raw === null || raw === undefined || raw === '') return;
+      var v = parseInt(raw, 10); if (isNaN(v) || String(v) !== String(raw).trim() || v < lim[0] || v > lim[1]) return;
+      st[field] = v; got = true;
+    }
+    var sz = get('size');
+    if (sz && sizeById(sz).id === sz) { st.size = sz; st.nights = sizeById(sz).nights; got = true; }
+    pick('nights', 'nights', [1, 30]);
+    pick('trips', 'trips', [1, 100]);
+    pick('price', 'price', LIM.price);
+    pick('extra', 'extraNights', LIM.extraNights);
+    pick('years', 'years', LIM.years);
+    pick('resale', 'resale', LIM.resale);
+    return got;
+  }
   function readUrl() {
     var q = new URLSearchParams(location.search);
-    if (q.get('size') && sizeById(q.get('size')).id === q.get('size')) st.size = q.get('size');
-    if (q.get('nights')) st.nights = num(q.get('nights'), st.nights, [1, 30]);
-    if (q.get('trips')) st.trips = num(q.get('trips'), st.trips, [1, 100]);
-    if (q.get('price')) st.price = num(q.get('price'), st.price, LIM.price);
-    if (q.get('extra')) st.extraNights = num(q.get('extra'), st.extraNights, LIM.extraNights);
-    if (q.get('years')) st.years = num(q.get('years'), st.years, LIM.years);
-    if (q.get('resale')) st.resale = num(q.get('resale'), st.resale, LIM.resale);
+    if (take(function (k) { return q.get(k); })) { via = 'url'; showUrl = true; return; }
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) {}
+    if (saved && typeof saved === 'object' && take(function (k) { return saved[k] === undefined ? null : String(saved[k]); })) { via = 'saved'; showUrl = true; }
+  }
+  function save() {
+    try { localStorage.setItem(LS_KEY, JSON.stringify({ size: st.size, nights: st.nights, trips: st.trips, price: st.price, extra: st.extraNights, years: st.years, resale: st.resale })); } catch (e) {}
   }
   function writeUrl() {
+    if (!showUrl) return;
     var p = ['size=' + st.size, 'nights=' + st.nights, 'trips=' + st.trips, 'price=' + st.price];
     if (st.extraNights !== DEFAULTS.extraNights) p.push('extra=' + st.extraNights);
     if (st.years !== DEFAULTS.years) p.push('years=' + st.years);
@@ -398,25 +433,28 @@ function judge(once, price, resale, years, trips) {
     cta.dataset.choice = r.choice;
     if (r.choice === 'rent') {
       cta.href = a8(s.geo);
-      cta.textContent = 'ゲオで' + s.name + 'サイズ（' + s.range + '）を見る';
+      cta.textContent = '借りるなら：ゲオで' + s.name + 'サイズ（' + s.range + '）の一覧を見る';
       $('ctaNote').textContent = 'PR・料金は' + CHECKED + ' 確認。本州・四国・九州は往復送料無料。支払いはクレジットカードのみ。';
       $('a8px').innerHTML = '<img border="0" width="1" height="1" src="' + A8_IMG + '" alt="">';
       $('killer').hidden = false;
     } else {
       cta.href = 'https://www.amazon.co.jp/s?k=' + encodeURIComponent('スーツケース ' + s.liters.replace('〜', '-') + ' ' + s.range.replace('〜', '-')) + '&tag=' + AMAZON_TAG;
-      cta.textContent = 'Amazonで' + s.name + 'サイズ（' + s.liters + '）のいまの価格を見る';
+      cta.textContent = '買うなら：Amazonで' + s.liters + 'のいまの値段を見る';
       $('ctaNote').textContent = 'PR・' + yen(st.price) + 'は目安です。今の価格はAmazonで確かめてください。';
       $('a8px').innerHTML = '';
       $('killer').hidden = true;
     }
 
     var key = [st.size, st.nights, st.trips, st.price, st.extraNights, st.years, st.resale].join('|');
-    if (track && key !== lastKey && typeof gtag === 'function' && !window.__kkpPreview) {
-      gtag('event', 'rentbuy_result', { item: st.size, n: st.trips, nights: st.nights, years: st.years, choice: r.choice, cat: CAT });
+    if (track && key !== lastKey) {
+      if (via === 'tap' || via === 'input') save();
+      if (typeof gtag === 'function' && !window.__kkpPreview) gtag('event', 'rentbuy_result', { item: st.size, n: st.trips, nights: st.nights, years: st.years, price: st.price, choice: r.choice, cat: CAT, via: via });
     }
     lastKey = key;
   }
 
+  // 自分で選んだ印（URLに条件を書き、前回の条件の案内を消す）
+  function touch(how) { via = how; showUrl = true; $('rFrom').hidden = true; }
   function maybeScroll() {
     var r = $('result').getBoundingClientRect();
     if (r.top > window.innerHeight * 0.6) $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -424,20 +462,22 @@ function judge(once, price, resale, years, trips) {
   $('sizePick').addEventListener('click', function (e) {
     var b = e.target.closest('button'); if (!b) return;
     st.size = b.dataset.id; st.nights = sizeById(st.size).nights;
-    render(true);
+    touch('tap'); render(true);
     if (typeof gtag === 'function' && !window.__kkpPreview) gtag('event', 'rentbuy_item', { item: st.size, cat: CAT });
   });
-  $('nightsPick').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.nights = parseInt(b.dataset.n, 10); render(true); });
-  $('tripsPick').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.trips = parseInt(b.dataset.n, 10); render(true); maybeScroll(); });
-  $('pricePick').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.price = parseInt(b.dataset.n, 10); fillInputs(); render(true); maybeScroll(); });
+  $('nightsPick').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.nights = parseInt(b.dataset.n, 10); touch('tap'); render(true); });
+  $('tripsPick').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.trips = parseInt(b.dataset.n, 10); touch('tap'); render(true); maybeScroll(); });
+  $('pricePick').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; st.price = parseInt(b.dataset.n, 10); fillInputs(); touch('tap'); render(true); maybeScroll(); });
   ['price', 'extraNights', 'years', 'resale'].forEach(function (k) {
-    $(k).addEventListener('input', function (e) { if (e.target.value === '') return; st[k] = num(e.target.value, st[k], LIM[k]); render(false); });
-    $(k).addEventListener('blur', function () { fillInputs(); render(true); });
+    $(k).addEventListener('input', function (e) { if (e.target.value === '') return; st[k] = num(e.target.value, st[k], LIM[k]); touch('input'); render(false); });
+    $(k).addEventListener('blur', function () { fillInputs(); if (via === 'input') render(true); });
   });
-  $('cta').addEventListener('click', function () { if (typeof gtag === 'function' && !window.__kkpPreview) gtag('event', 'rentbuy_cta', { choice: $('cta').dataset.choice, cat: CAT, from: 'tool' }); });
+  $('cta').addEventListener('click', function () { if (typeof gtag === 'function' && !window.__kkpPreview) gtag('event', 'rentbuy_cta', { choice: $('cta').dataset.choice, cat: CAT, from: 'tool', via: via }); });
   $('killer').addEventListener('click', function () { if (typeof gtag === 'function' && !window.__kkpPreview) gtag('event', 'rentbuy_killer_link', { item: st.size, cat: CAT }); });
 
-  readUrl(); fillInputs(); render(false);
+  readUrl(); fillInputs();
+  if (via === 'saved') { $('rFrom').textContent = '前回選んだ条件で出しています。変えるときは上のボタンを押してください。'; $('rFrom').hidden = false; }
+  render(via === 'url' || via === 'saved');
   if (!window.__kkpPreview) {
     [].forEach.call(document.querySelectorAll('ins.adsbygoogle'), function () { try { (adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {} });
   }
