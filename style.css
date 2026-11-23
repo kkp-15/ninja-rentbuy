@@ -164,3 +164,5 @@ td.num,th.num{font-variant-numeric:tabular-nums}
 /* 2026-11-23 答え（借りる／買う）の直後に、その答えに沿う案件を1つ。内訳の表はその下 */
 .result .ctanote{margin-bottom:.9rem}
 .result .rfrom{font-size:13px;color:var(--sub);margin:0 0 .2rem}
+/* 2026-11-23 答えの後の「次の道具へ」1行（押しやすい高さ） */
+#xEnsei{display:inline-flex;align-items:center;min-height:44px;margin:.2rem 0 .3rem;font-size:15px}

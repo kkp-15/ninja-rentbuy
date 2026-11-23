@@ -90,7 +90,7 @@
 <!-- 共通部品 D4（kkp-kit を kit/ にコピーしたもの。中は手で直さず kkp-kit 側で直して sync.sh） -->
 <link rel="stylesheet" href="/kit/kit.css?v=6f47ed7">
 <script src="/kit/kit.js?v=6f47ed7" defer></script>
-<link rel="stylesheet" href="/style.css?v=20261123">
+<link rel="stylesheet" href="/style.css?v=20261123b">
 <!-- kkp-rel-d4:start -->
 <style id="kkp-rel-d4">
 /* あわせて使えるアプリ（統一仕様の欄）を D4 に: 和紙の面・筆の見出し・墨の字＋オレンジの下線＋道しるべ。入れ物なので影なし（kit: 影は押せるものだけ）。中身とリンクは触らない（インライン style に勝つため !important） */
@@ -135,6 +135,8 @@
   <a class="cta" id="cta" href="#" target="_blank" rel="sponsored nofollow noopener"></a>
   <p class="ctanote" id="ctaNote"></p>
   <span id="a8px"></span>
+  <!-- 2026-11-23 答え・案件ボタンの後に、旅の費用全体へ1行（遠征費計算ツール。引数なし） -->
+  <a class="cta2" id="xEnsei" href="https://ensei.kkpwebninja.com/" onclick="if(typeof gtag==='function')gtag('event','xlink_ensei',{from:'rentbuy'})">旅行の交通費と宿代もまとめて計算 ›</a>
   <table class="rtable">
     <tr><th>項目</th><th class="num">金額</th><th>式</th></tr>
     <tr><td class="k">1回借りる料金</td><td class="num" id="rOnce"></td><td class="f" id="rOnceSub"></td></tr>
