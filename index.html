@@ -40,12 +40,17 @@
 // 確認用: ?preview=1 と localhost では広告と GA4 を止める
 (function(){var p=/[?&](preview|noads)=1/.test(location.search)||location.hostname==='localhost'||location.hostname==='127.0.0.1';if(p){window.__kkpPreview=true;window['ga-disable-G-2LM85GJN0L']=true;return;}var s=document.createElement('script');s.async=true;s.crossOrigin='anonymous';s.src='https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1298304917726270'; s.dataset.overlays = 'bottom';document.head.appendChild(s);})();
 </script>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-2LM85GJN0L');
+  // 本番ドメインだけで計測する（*.pages.dev に来るボットの0秒訪問で数字が崩れていたため）
+  if (/(^|\.)kkpwebninja\.com$/.test(location.hostname)) {
+    var gs = document.createElement('script'); gs.async = true;
+    gs.src = 'https://www.googletagmanager.com/gtag/js?id=G-2LM85GJN0L';
+    document.head.appendChild(gs);
+    gtag('js', new Date());
+    gtag('config', 'G-2LM85GJN0L');
+  }
 </script>
 
 
